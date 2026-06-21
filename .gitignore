@@ -1,2 +1,4 @@
 input/
 output/
+.claude/
+__pycache__

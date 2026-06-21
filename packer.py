@@ -26,6 +26,8 @@ from collections import defaultdict
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_DIR = os.path.join(SCRIPT_DIR, "input")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
+INDIV_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "Individual")
+NS_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "Namespace")
 
 PACK_FORMAT = 15  # Minecraft 1.20.x
 
@@ -191,9 +193,8 @@ def write_zip(zip_path, records, description):
 
 def make_zip_name(rec, collisions):
     """Generate zip filename for an individual record."""
-    if rec["id_name"] in collisions:
-        return f"{rec['id_ns']}_{rec['id_name']}"
-    return rec["id_name"]
+    base = f"{rec['id_ns']}_{rec['id_name']}" if rec["id_name"] in collisions else rec["id_name"]
+    return base[0].upper() + base[1:]
 
 
 def make_indiv_desc(rec):
@@ -283,16 +284,18 @@ def pick_records(records, collisions, prompt="Select definitions"):
 
 def run_individual(records, collisions):
     """One pack per halo definition."""
+    os.makedirs(INDIV_OUTPUT_DIR, exist_ok=True)
     print(f"\n[Mode] Individual packs ({len(records)} pack(s))")
     for rec in records:
         zip_name = make_zip_name(rec, collisions) + ".zip"
-        zip_path = os.path.join(OUTPUT_DIR, zip_name)
+        zip_path = os.path.join(INDIV_OUTPUT_DIR, zip_name)
         write_zip(zip_path, [rec], make_indiv_desc(rec))
-        print(f"    -> {zip_name}")
+        print(f"    -> Individual/{zip_name}")
 
 
 def run_by_namespace(records, collisions):
     """One pack per namespace."""
+    os.makedirs(NS_OUTPUT_DIR, exist_ok=True)
     by_ns = defaultdict(list)
     for rec in records:
         by_ns[rec["id_ns"]].append(rec)
@@ -300,10 +303,10 @@ def run_by_namespace(records, collisions):
     print(f"\n[Mode] By namespace ({len(by_ns)} pack(s))")
     for ns in sorted(by_ns.keys()):
         group = by_ns[ns]
-        zip_name = f"{ns}_halos.zip"
-        zip_path = os.path.join(OUTPUT_DIR, zip_name)
+        zip_name = f"{ns[0].upper() + ns[1:]}_halos.zip"
+        zip_path = os.path.join(NS_OUTPUT_DIR, zip_name)
         write_zip(zip_path, group, make_namespace_desc(ns, group))
-        print(f"    -> {zip_name}")
+        print(f"    -> Namespace/{zip_name}")
 
 
 def run_combined(records, collisions):
@@ -317,6 +320,7 @@ def run_combined(records, collisions):
 
 def run_pick(records, collisions):
     """Let the user pick specific definitions, then pack them individually."""
+    os.makedirs(INDIV_OUTPUT_DIR, exist_ok=True)
     chosen = pick_records(records, collisions, "Pick definitions to pack individually")
     if not chosen:
         print("[WARN] No definitions selected, skipping.")
@@ -324,9 +328,9 @@ def run_pick(records, collisions):
     print(f"\n[Mode] Individual packs for {len(chosen)} selected definition(s)")
     for rec in chosen:
         zip_name = make_zip_name(rec, collisions) + ".zip"
-        zip_path = os.path.join(OUTPUT_DIR, zip_name)
+        zip_path = os.path.join(INDIV_OUTPUT_DIR, zip_name)
         write_zip(zip_path, [rec], make_indiv_desc(rec))
-        print(f"    -> {zip_name}")
+        print(f"    -> Individual/{zip_name}")
 
 
 def run_custom(records, collisions):
@@ -343,10 +347,12 @@ def run_custom(records, collisions):
 
     mode = input("  Choice (1/2/3): ").strip()
     if mode == "2":
+        os.makedirs(NS_OUTPUT_DIR, exist_ok=True)
         run_by_namespace(chosen, collisions)
     elif mode == "3":
         run_combined(chosen, collisions)
     else:
+        os.makedirs(INDIV_OUTPUT_DIR, exist_ok=True)
         run_individual(chosen, collisions)
 
 
@@ -356,6 +362,8 @@ def run_custom(records, collisions):
 
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(INDIV_OUTPUT_DIR, exist_ok=True)
+    os.makedirs(NS_OUTPUT_DIR, exist_ok=True)
 
     json_files, png_files = collect_files()
     if not json_files:
