@@ -27,7 +27,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT_DIR = os.path.join(SCRIPT_DIR, "input")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 INDIV_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "Individual")
-NS_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "Namespace")
+NS_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "Schools")
 
 PACK_FORMAT = 15  # Minecraft 1.20.x
 
@@ -306,7 +306,7 @@ def run_by_namespace(records, collisions):
         zip_name = f"{ns[0].upper() + ns[1:]}_halos.zip"
         zip_path = os.path.join(NS_OUTPUT_DIR, zip_name)
         write_zip(zip_path, group, make_namespace_desc(ns, group))
-        print(f"    -> Namespace/{zip_name}")
+        print(f"    -> Schools/{zip_name}")
 
 
 def run_combined(records, collisions):
